@@ -1,11 +1,11 @@
 import dagster as dg
-
-from dagster_and_dbt.assets import metrics, requests, trips
+from dagster_and_dbt.assets import metrics, requests, trips, dbt
 from dagster_and_dbt.jobs import adhoc_request_job, trip_update_job, weekly_update_job
-from dagster_and_dbt.resources import database_resource
+from dagster_and_dbt.resources import database_resource, dbt_resource
 from dagster_and_dbt.schedules import trip_update_schedule, weekly_update_schedule
 from dagster_and_dbt.sensors import adhoc_request_sensor
 
+dbt_analytics_assets = dg.load_assets_from_modules(modules=[dbt])
 trip_assets = dg.load_assets_from_modules([trips])
 metric_assets = dg.load_assets_from_modules(
     modules=[metrics],
@@ -28,4 +28,13 @@ defs = dg.Definitions(
     jobs=all_jobs,
     schedules=all_schedules,
     sensors=all_sensors,
+)
+
+defs = dg.Definitions(
+    assets=[*trip_assets, *metric_assets, *requests_assets, *dbt_analytics_assets], # Add the dbt assets to your code location
+    resources={
+        "database": database_resource,
+        "dbt": dbt_resource # register your dbt resource with the code location
+    },
+  # .. other definitions
 )
